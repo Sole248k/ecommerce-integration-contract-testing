@@ -24,7 +24,7 @@ Ensure your development environment has:
 
 ### 2. Clone the Repository
 ```bash
-git clone <YOUR_GIT_REPOSITORY_URL>
+git clone https://github.com/Sole248k/ecommerce-integration-contract-testing.git
 cd "Day 25"
 ```
 
