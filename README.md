@@ -24,8 +24,7 @@ Ensure your development environment has:
 
 ### 2. Clone the Repository
 ```bash
-git clone <YOUR_GIT_REPOSITORY_URL>
-cd "Day 25"
+git clone https://github.com/Sole248k/ecommerce-integration-contract-testing.git
 ```
 
 ### 3. Setup Virtual Environment & Install Dependencies
