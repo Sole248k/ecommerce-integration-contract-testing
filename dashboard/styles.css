@@ -369,18 +369,20 @@ html[data-theme="light"] .moon-icon { display: inline-block; }
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-}
-
-.form-group label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  min-width: 0;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 input, select, textarea {
@@ -393,6 +395,9 @@ input, select, textarea {
   color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  max-width: 100%;
+  min-width: 0;
 }
 
 input:focus, select:focus, textarea:focus {
