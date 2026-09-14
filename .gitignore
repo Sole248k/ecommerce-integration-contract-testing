@@ -103,6 +103,11 @@ Desktop.ini
 pacts/tmp/
 *.pact.tmp
 
+# Office documents & reports (generated binaries)
+*.docx
+*.doc
+*.pptx
+*.xlsx
+
 # Ensure important artifacts and contracts are tracked
 !pacts/*.json
-!*.docx
