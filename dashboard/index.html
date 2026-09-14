@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TestForge | Microservice Integration & Contract Testing Suite</title>
+  <meta name="description" content="Interactive testing and observation dashboard for Practical Integration Testing, Consumer-Driven Contract Testing (Pact), and Test Data Management.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-badge">⚡</div>
+        <div class="brand-titles">
+          <h1 class="brand-name">TestForge Microservices</h1>
+          <span class="brand-subtitle">Hands-on Day 25: Integration & Contract Testing Platform</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-pills">
+          <div class="status-pill" id="status-product" title="Product Service (Port 8001)">
+            <span class="status-dot online"></span>
+            <span class="status-label">Product Svc: <strong>Online</strong></span>
+          </div>
+          <div class="status-pill" id="status-order" title="Order Service (Port 8002)">
+            <span class="status-dot online"></span>
+            <span class="status-label">Order Svc: <strong>Online</strong></span>
+          </div>
+          <div class="status-pill" id="status-pact" title="Pact Framework v4.0 Specification">
+            <span class="status-dot online"></span>
+            <span class="status-label">Pact: <strong>Verified</strong></span>
+          </div>
+          <div class="status-pill" id="status-tdm" title="Dynamic Testcontainers PostgreSQL">
+            <span class="status-dot online"></span>
+            <span class="status-label">TDM: <strong>PostgreSQL 16</strong></span>
+          </div>
+        </div>
+
+        <!-- Light / Dark Mode Toggle Button -->
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Light/Dark Theme" title="Toggle Theme (Light / Dark Mode)">
+          <span class="theme-icon sun-icon">☀️</span>
+          <span class="theme-icon moon-icon">🌙</span>
+          <span class="theme-text" id="theme-text">Dark Mode</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <div class="nav-container">
+        <button class="nav-tab active" data-tab="catalog" id="tab-btn-catalog">
+          <span class="tab-icon">🛍️</span>
+          <span>Product Catalog</span>
+        </button>
+        <button class="nav-tab" data-tab="orders" id="tab-btn-orders">
+          <span class="tab-icon">📦</span>
+          <span>Order Management</span>
+        </button>
+        <button class="nav-tab" data-tab="contracts" id="tab-btn-contracts">
+          <span class="tab-icon">🤝</span>
+          <span>Pact Contracts</span>
+          <span class="tab-badge">4 Contracts</span>
+        </button>
+        <button class="nav-tab" data-tab="test-runner" id="tab-btn-runner">
+          <span class="tab-icon">🧪</span>
+          <span>Live Test Runner</span>
+          <span class="tab-badge success">8/8 Passed</span>
+        </button>
+        <button class="nav-tab" data-tab="architecture" id="tab-btn-architecture">
+          <span class="tab-icon">🏛️</span>
+          <span>Architecture & TDM</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+
+    <!-- Tab 1: Product Catalog & Inventory -->
+    <section id="tab-catalog" class="tab-pane active">
+      <div class="pane-grid">
+        <!-- Add Product Form Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <div class="card-icon">➕</div>
+            <div>
+              <h2 class="card-title">Add Catalog Product</h2>
+              <p class="card-desc">Create a new item in the Product Service Provider catalog</p>
+            </div>
+          </div>
+          <form id="product-form" class="app-form">
+            <div class="form-group">
+              <label for="prod-name">Product Name *</label>
+              <input type="text" id="prod-name" required placeholder="e.g. Ergonomic Office Chair" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prod-price">Price ($) *</label>
+                <input type="number" id="prod-price" required step="0.01" min="0.01" placeholder="99.99" />
+              </div>
+              <div class="form-group">
+                <label for="prod-stock">Stock Quantity *</label>
+                <input type="number" id="prod-stock" required min="0" placeholder="25" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prod-id">Product ID (Optional)</label>
+                <input type="text" id="prod-id" placeholder="Auto-generated if empty" />
+              </div>
+              <div class="form-group">
+                <label for="prod-sku">SKU Code (Optional)</label>
+                <input type="text" id="prod-sku" placeholder="Auto-generated if empty" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-save-product">
+              <span>Save to Product Database</span>
+            </button>
+            <div id="product-form-msg" class="form-msg"></div>
+          </form>
+        </div>
+
+        <!-- Inventory List Card -->
+        <div class="card table-card">
+          <div class="card-header flex-between">
+            <div class="flex-align">
+              <div class="card-icon">📋</div>
+              <div>
+                <h2 class="card-title">Product Inventory</h2>
+                <p class="card-desc">Live state of Provider catalog database</p>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="btn-refresh-products">
+              <span>🔄 Refresh</span>
+            </button>
+          </div>
+          
+          <div class="table-wrapper">
+            <table class="data-table" id="products-table">
+              <thead>
+                <tr>
+                  <th>Product ID</th>
+                  <th>Name</th>
+                  <th>SKU</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+                <tr><td colspan="6" class="loading-cell">Loading products...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Order Management & Fulfillment -->
+    <section id="tab-orders" class="tab-pane">
+      <div class="pane-grid">
+        <!-- Create Order Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <div class="card-icon">🛒</div>
+            <div>
+              <h2 class="card-title">Place Customer Order</h2>
+              <p class="card-desc">Synchronously calls Product Service to validate stock and price</p>
+            </div>
+          </div>
+          <form id="order-form" class="app-form">
+            <div class="form-group">
+              <label for="order-customer">Customer ID *</label>
+              <input type="text" id="order-customer" required placeholder="e.g. cust_sarah_99" value="cust_alpha_01" />
+            </div>
+            
+            <div class="order-items-container">
+              <label class="items-header">Order Items</label>
+              <div id="order-items-list">
+                <!-- Dynamic Item Row -->
+                <div class="order-item-row" data-index="0">
+                  <div class="form-group flex-2">
+                    <label>Select Product</label>
+                    <select class="order-prod-select" required>
+                      <option value="">Choose a product...</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Quantity</label>
+                    <input type="number" class="order-prod-qty" min="1" value="1" required />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="order-summary-box" id="order-live-summary">
+              <span class="summary-label">Estimated Total:</span>
+              <span class="summary-amount" id="order-estimated-total">$0.00</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-submit-order">
+              <span>Submit Order (POST /api/v1/orders)</span>
+            </button>
+            <div id="order-form-msg" class="form-msg"></div>
+          </form>
+        </div>
+
+        <!-- Orders Table Card -->
+        <div class="card table-card">
+          <div class="card-header flex-between">
+            <div class="flex-align">
+              <div class="card-icon">📑</div>
+              <div>
+                <h2 class="card-title">Order Processing Journal</h2>
+                <p class="card-desc">Consumer order records with real-time fulfillment status</p>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="btn-refresh-orders">
+              <span>🔄 Refresh</span>
+            </button>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table" id="orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                  <th>Line Items</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <tr><td colspan="6" class="loading-cell">Loading orders...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Pact Contracts Inspector -->
+    <section id="tab-contracts" class="tab-pane">
+      <div class="card">
+        <div class="card-header flex-between">
+          <div class="flex-align">
+            <div class="card-icon">📜</div>
+            <div>
+              <h2 class="card-title">Consumer-Driven Contract: order_service ➔ product_service</h2>
+              <p class="card-desc">Contract generated via Pact Framework v4.0 specification (pacts/order_service-product_service.json)</p>
+            </div>
+          </div>
+          <div class="contract-meta-badges">
+            <span class="badge badge-purple">Consumer: order_service</span>
+            <span class="badge badge-cyan">Provider: product_service</span>
+            <span class="badge badge-emerald">4 Interactions Verified</span>
+          </div>
+        </div>
+
+        <div class="contract-interactions-grid">
+          <!-- Interaction 1 -->
+          <div class="interaction-card">
+            <div class="interaction-header">
+              <span class="http-badge get">GET</span>
+              <span class="endpoint-path">/api/v1/products/101</span>
+              <span class="response-status status-200">200 OK</span>
+            </div>
+            <div class="interaction-meta">
+              <strong>Provider State:</strong> <code>Product with ID 101 exists in catalog</code>
+            </div>
+            <div class="code-preview">
+              <pre><code>{
+  "id": "101",
+  "name": "Mechanical Keyboard",
+  "price": 89.99,
+  "stock": 15
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Interaction 2 -->
+          <div class="interaction-card">
+            <div class="interaction-header">
+              <span class="http-badge get">GET</span>
+              <span class="endpoint-path">/api/v1/products/999</span>
+              <span class="response-status status-404">404 NOT FOUND</span>
+            </div>
+            <div class="interaction-meta">
+              <strong>Provider State:</strong> <code>Product with ID 999 does not exist</code>
+            </div>
+            <div class="code-preview">
+              <pre><code>{
+  "detail": "Product not found"
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Interaction 3 -->
+          <div class="interaction-card">
+            <div class="interaction-header">
+              <span class="http-badge patch">PATCH</span>
+              <span class="endpoint-path">/api/v1/products/101/deduct-stock</span>
+              <span class="response-status status-200">200 OK</span>
+            </div>
+            <div class="interaction-meta">
+              <strong>Provider State:</strong> <code>Product 101 has 15 units of stock</code><br/>
+              <strong>Request Body:</strong> <code>{"quantity": 2}</code>
+            </div>
+            <div class="code-preview">
+              <pre><code>{
+  "id": "101",
+  "remaining_stock": 13,
+  "status": "DEDUCTED"
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Interaction 4 -->
+          <div class="interaction-card">
+            <div class="interaction-header">
+              <span class="http-badge patch">PATCH</span>
+              <span class="endpoint-path">/api/v1/products/102/deduct-stock</span>
+              <span class="response-status status-409">409 CONFLICT</span>
+            </div>
+            <div class="interaction-meta">
+              <strong>Provider State:</strong> <code>Product 102 has 0 inventory</code><br/>
+              <strong>Request Body:</strong> <code>{"quantity": 1}</code>
+            </div>
+            <div class="code-preview">
+              <pre><code>{
+  "detail": "Insufficient stock available"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="contract-raw-section">
+          <div class="flex-between flex-align-center mb-2">
+            <h3 class="section-title">Raw Contract JSON (`order_service-product_service.json`)</h3>
+            <button class="btn btn-xs btn-outline" id="btn-copy-contract">📋 Copy JSON</button>
+          </div>
+          <pre class="raw-json-box"><code id="raw-contract-code">Loading contract JSON...</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Live Test Runner -->
+    <section id="tab-test-runner" class="tab-pane">
+      <div class="card">
+        <div class="card-header flex-between">
+          <div class="flex-align">
+            <div class="card-icon">⚡</div>
+            <div>
+              <h2 class="card-title">Automated Pytest & Pact Test Runner</h2>
+              <p class="card-desc">Execute the complete verification suite across Integration, Contract, and TDM layers</p>
+            </div>
+          </div>
+          <div class="runner-controls">
+            <button class="btn btn-secondary" id="btn-run-integration">
+              <span>Run Integration Tests (IT-01 to IT-05)</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-run-consumer">
+              <span>Run Pact Consumer Test</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-run-provider">
+              <span>Run Pact Provider Test</span>
+            </button>
+            <button class="btn btn-primary" id="btn-run-all-tests">
+              <span>🚀 Run All 8 Tests</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Test Case Matrix -->
+        <div class="test-matrix-grid">
+          <div class="test-tile" id="tile-it-01">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">IT-01</div>
+            <div class="test-tile-name">Create New Product (Positive)</div>
+            <div class="test-tile-scope">Product Service + Testcontainers</div>
+          </div>
+          <div class="test-tile" id="tile-it-02">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">IT-02</div>
+            <div class="test-tile-name">Invalid Payload Negative Validation</div>
+            <div class="test-tile-scope">Product Service + Pydantic v2</div>
+          </div>
+          <div class="test-tile" id="tile-it-03">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">IT-03</div>
+            <div class="test-tile-name">Place New Order (Positive)</div>
+            <div class="test-tile-scope">Order Svc + Product Client + Postgres</div>
+          </div>
+          <div class="test-tile" id="tile-it-04">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">IT-04</div>
+            <div class="test-tile-name">Non-Existent Product Rejection</div>
+            <div class="test-tile-scope">Order Svc + 404 Upstream Catch</div>
+          </div>
+          <div class="test-tile" id="tile-it-05">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">IT-05</div>
+            <div class="test-tile-name">Update Order Status & Stock Deduct</div>
+            <div class="test-tile-scope">Order Svc + Transactional Flow</div>
+          </div>
+          <div class="test-tile" id="tile-pact-consumer">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">PACT-C</div>
+            <div class="test-tile-name">Pact Consumer Test (4 Contracts)</div>
+            <div class="test-tile-scope">Order Svc + Pact Mock Server</div>
+          </div>
+          <div class="test-tile" id="tile-pact-provider">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">PACT-P</div>
+            <div class="test-tile-name">Pact Provider Verification</div>
+            <div class="test-tile-scope">Product Svc + State Handlers</div>
+          </div>
+          <div class="test-tile" id="tile-tdm">
+            <div class="test-tile-status passed">PASSED</div>
+            <div class="test-tile-id">TDM-01</div>
+            <div class="test-tile-name">Postgres Lifecycle & Rollback</div>
+            <div class="test-tile-scope">Testcontainers Ephemeral DB</div>
+          </div>
+        </div>
+
+        <!-- Terminal Console Output -->
+        <div class="terminal-card">
+          <div class="terminal-bar">
+            <div class="terminal-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="terminal-title">Pytest Execution Console & Live Output</span>
+            <button class="btn btn-xs btn-outline" id="btn-clear-console">Clear</button>
+          </div>
+          <pre class="terminal-output" id="test-console">Ready to run tests. Click 'Run All 8 Tests' or any individual suite above.</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Architecture & TDM Blueprint -->
+    <section id="tab-architecture" class="tab-pane">
+      <div class="pane-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🏛️</div>
+            <div>
+              <h2 class="card-title">Microservice & Contract Architecture</h2>
+              <p class="card-desc">Domain isolation, Consumer-Driven Contracts, and API interactions</p>
+            </div>
+          </div>
+          <div class="diagram-container">
+            <div class="arch-box client-box">
+              <div class="box-title">Client Layer</div>
+              <p>Interactive Web Dashboard / Mobile / API Gateway</p>
+            </div>
+            <div class="arch-arrows-vertical">⬇️ HTTP POST /orders | GET /products</div>
+            <div class="arch-services-row">
+              <div class="arch-box consumer-box">
+                <div class="box-badge">Consumer Service</div>
+                <div class="box-title">Order Service (Port 8002)</div>
+                <p>• FastAPI Async API<br/>• Order & LineItems Schema<br/>• Upstream Product Client<br/>• PostgreSQL DB</p>
+              </div>
+              <div class="arch-pact-bridge">
+                <div class="pact-badge">Pact CDC Contract</div>
+                <span>4 Interactions<br/>GET /products/{id}<br/>PATCH /deduct-stock</span>
+                <span class="bridge-arrow">⇄</span>
+              </div>
+              <div class="arch-box provider-box">
+                <div class="box-badge">Provider Service</div>
+                <div class="box-title">Product Service (Port 8001)</div>
+                <p>• Catalog CRUD<br/>• Inventory Allocation<br/>• Provider State Fixtures<br/>• PostgreSQL DB</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🐳</div>
+            <div>
+              <h2 class="card-title">Test Data Management (TDM) Lifecycle</h2>
+              <p class="card-desc">Dynamic containerization and transaction-level isolation</p>
+            </div>
+          </div>
+          <div class="tdm-steps-list">
+            <div class="tdm-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <strong>Dynamic Ephemeral Container (Testcontainers)</strong>
+                <p>Test session pulls and executes PostgreSQL 16 on a dynamically assigned host port, preventing port collisions across parallel test runs.</p>
+              </div>
+            </div>
+            <div class="tdm-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <strong>DDL Schema Migration</strong>
+                <p>SQLAlchemy metadata creates all tables (<code>products</code>, <code>orders</code>, <code>order_items</code>) afresh in the isolated database.</p>
+              </div>
+            </div>
+            <div class="tdm-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <strong>Transaction Rollback Isolation</strong>
+                <p>Each test case executes within a nested SQLAlchemy transaction. Upon test exit, <code>transaction.rollback()</code> restores the clean database state in under 5 milliseconds.</p>
+              </div>
+            </div>
+            <div class="tdm-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <strong>Zero-State Teardown</strong>
+                <p>When the pytest session terminates, Testcontainers automatically tears down and cleans up the Docker container, leaving zero lingering state.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Stock Deduction Modal -->
+  <div id="deduct-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Deduct Product Stock</h3>
+        <button class="modal-close" id="btn-close-modal">&times;</button>
+      </div>
+      <form id="deduct-form">
+        <input type="hidden" id="deduct-prod-id" />
+        <div class="modal-body">
+          <p>Product: <strong id="deduct-prod-name">-</strong></p>
+          <p>Current Stock: <span class="badge badge-cyan" id="deduct-prod-current-stock">0</span></p>
+          <div class="form-group mt-3">
+            <label for="deduct-qty">Quantity to Deduct *</label>
+            <input type="number" id="deduct-qty" min="1" value="1" required />
+          </div>
+          <div id="deduct-modal-msg" class="form-msg"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-confirm-deduct">Execute Deduction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

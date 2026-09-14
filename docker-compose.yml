@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Real PostgreSQL Database for Product Service (Provider)
+  product-db:
+    image: postgres:16-alpine
+    container_name: day25-product-db
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5434:5432"
+    volumes:
+      - product_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d product_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Real PostgreSQL Database for Order Service (Consumer)
+  order-db:
+    image: postgres:16-alpine
+    container_name: day25-order-db
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5435:5432"
+    volumes:
+      - order_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d order_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  product_pgdata:
+  order_pgdata:
